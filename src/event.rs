@@ -19,6 +19,8 @@ const MAX_TRANSACTION_BYTES: u64 = 1232;
 /// count to need a second byte.
 const FIRST_SIGNATURE: std::ops::Range<usize> = 1..65;
 
+/// A post-pack feed sends [`Event::Preconf`] only: it carries transactions the scheduler
+/// committed to, which is before any slot exists to announce.
 #[derive(Debug, Clone)]
 pub enum Event {
     SlotStart(SlotStart),
@@ -40,9 +42,10 @@ pub struct SlotStart {
 
 #[derive(Debug, Clone)]
 pub struct Preconf {
+    /// Zero on a post-pack feed, which carries no slot.
     pub slot: u64,
     /// Position the leader gave the transaction inside the slot. Ordering
-    /// information, not a promise about the final block.
+    /// information, not a promise about the final block, and zero on a post-pack feed.
     pub index: u64,
     /// The raw signed transaction, exactly as the leader executed it.
     pub data: Bytes,

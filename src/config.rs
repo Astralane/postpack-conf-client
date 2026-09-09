@@ -11,7 +11,7 @@ pub struct Config {
 
 impl Config {
     /// `endpoint` decides the transport: `https://` uses the system root certificates,
-    /// `http://` connects in the clear. `token` is your base58 public key.
+    /// `http://` connects in the clear. `token` is the access token you were issued.
     pub fn new(endpoint: impl Into<String>, token: impl Into<String>) -> Self {
         Self {
             endpoint: endpoint.into(),

@@ -3,7 +3,8 @@ use solana_pubkey::Pubkey;
 
 use crate::proto::SubscribePreconfsRequest;
 
-/// Filters for what the relay sends. Both lists empty means everything.
+/// Filters for what the relay sends. Both lists empty means everything, and a post-pack
+/// relay ignores them either way: that feed is served whole.
 #[derive(Debug, Clone, Default)]
 pub struct Interests {
     accounts: Vec<Pubkey>,

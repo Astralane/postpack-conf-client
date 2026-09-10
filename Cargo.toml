@@ -29,4 +29,7 @@ tonic-prost-build = "0.14"
 
 [dev-dependencies]
 anyhow = "1"
+dotenvy = "0.15"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

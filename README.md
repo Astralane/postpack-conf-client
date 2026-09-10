@@ -23,14 +23,23 @@ decoding. What it deliberately does not do is hide a gap: a reconnect is reporte
 `Event::StreamReset`, because the stream may have skipped messages and may repeat the current slot.
 
 A **post-pack** feed is the same schema with less in it: transactions the leader's scheduler
-committed to, and nothing else. No slot boundaries arrive, `slot` and `index` are zero, and
-interests are ignored — that feed is served whole.
+committed to, and nothing else. No slot boundaries arrive and `slot` and `index` are zero.
+Interests filter it like any other feed, except that naming no accounts or programs gets you
+nothing rather than everything.
 
 Run it against a relay:
 
 ```sh
 PRECONF_TOKEN=<your access token> cargo run --example subscribe
 ```
+
+Or keep the settings in a `.env` file: copy `.env.example` to `.env` and fill it in. Besides the
+endpoint and token it takes `PRECONF_ACCOUNTS` and `PRECONF_PROGRAMS`, comma separated pubkeys
+to filter on.
+
+The example is meant to be left running. Every 15 seconds it logs how many transactions arrived,
+to the console and to a daily file under `logs/` (`PRECONF_LOG_DIR`). `RUST_LOG=debug` logs each
+transaction as well.
 
 Access is granted per token. What the stream contains, how filtering works and what the errors
 mean are documented in the preconfirmations guide.

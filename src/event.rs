@@ -20,7 +20,7 @@ const MAX_TRANSACTION_BYTES: u64 = 1232;
 const FIRST_SIGNATURE: std::ops::Range<usize> = 1..65;
 
 /// A post-pack feed sends [`Event::Preconf`] only: it carries transactions the scheduler
-/// committed to, which is before any slot exists to announce.
+/// committed to.
 #[derive(Debug, Clone)]
 pub enum Event {
     SlotStart(SlotStart),
@@ -42,11 +42,7 @@ pub struct SlotStart {
 
 #[derive(Debug, Clone)]
 pub struct Preconf {
-    /// Zero on a post-pack feed, which carries no slot.
     pub slot: u64,
-    /// Position the leader gave the transaction inside the slot. Ordering
-    /// information, not a promise about the final block, and zero on a post-pack feed.
-    pub index: u64,
     /// The raw signed transaction, exactly as the leader executed it.
     pub data: Bytes,
 }
@@ -93,7 +89,6 @@ impl Event {
 
             Message::Preconf(preconf) => Some(Self::Preconf(Preconf {
                 slot: preconf.slot,
-                index: preconf.transaction_index,
                 data: preconf.data,
             })),
         }
@@ -103,13 +98,26 @@ impl Event {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::proto::ValidatorSlotStart;
+    use crate::proto::{self, ValidatorSlotStart};
 
     fn preconf(data: Vec<u8>) -> Preconf {
         Preconf {
             slot: 1,
-            index: 0,
             data: Bytes::from(data),
+        }
+    }
+
+    #[test]
+    fn a_preconf_keeps_the_slot_it_arrived_with() {
+        let message = PreconfStreamMessage {
+            message: Some(Message::Preconf(proto::Preconf {
+                slot: 9,
+                data: Bytes::from_static(b"transaction"),
+            })),
+        };
+        match Event::from_message(message) {
+            Some(Event::Preconf(preconf)) => assert_eq!(preconf.slot, 9),
+            _ => panic!("expected a preconf"),
         }
     }
 

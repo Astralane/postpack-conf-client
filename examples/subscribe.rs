@@ -69,7 +69,7 @@ async fn run() -> anyhow::Result<()> {
             }
             Event::Preconf(tx) => {
                 received.fetch_add(1, Ordering::Relaxed);
-                debug!(signature = %tx.signature(), "transaction");
+                debug!(slot = tx.slot, signature = %tx.signature(), "transaction");
             }
             Event::StreamReset => warn!("reconnected, some messages may have been missed"),
         }

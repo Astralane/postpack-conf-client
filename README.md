@@ -23,7 +23,9 @@ decoding. What it deliberately does not do is hide a gap: a reconnect is reporte
 `Event::StreamReset`, because the stream may have skipped messages and may repeat the current slot.
 
 A **post-pack** feed is the same schema with less in it: transactions the leader's scheduler
-committed to, and nothing else. No slot boundaries arrive and `slot` and `index` are zero.
+committed to, and nothing else. No slot boundaries arrive. `slot` is the slot the block engine
+assigned the transaction to where it reports one, and otherwise the relay's own view of the
+current slot, which can trail the leader by a slot or two.
 Interests filter it like any other feed, except that naming no accounts or programs gets you
 nothing rather than everything.
 

@@ -27,7 +27,6 @@ message Preconf {
   uint64 slot = 1;
   // Raw serialized Solana transaction.
   bytes data = 2;
-  uint64 transaction_index = 3;
 }
 
 message PreconfStreamMessage {

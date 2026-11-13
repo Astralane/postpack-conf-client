@@ -26,8 +26,12 @@ A **post-pack** feed is the same schema with less in it: transactions the leader
 committed to, and nothing else. No slot boundaries arrive. `slot` is the slot the block engine
 assigned the transaction to where it reports one, and otherwise the relay's own view of the
 current slot, which can trail the leader by a slot or two.
-Interests filter it like any other feed, except that naming no accounts or programs gets you
-nothing rather than everything.
+Each transaction carries `leader`, the validator that produced it, when the relay knows it.
+
+Interests filter it like any other feed, and naming no accounts or programs gets you everything.
+Filter kinds combine with AND, keys within one list with OR: a transaction has to touch an
+account or program of interest (when any are named), be signed by one of `signers` (when any are
+named), and be signed by none of `excluded_signers` and reference none of `excluded_accounts`.
 
 Run it against a relay:
 
@@ -36,8 +40,8 @@ PRECONF_TOKEN=<your access token> cargo run --example subscribe
 ```
 
 Or keep the settings in a `.env` file: copy `.env.example` to `.env` and fill it in. Besides the
-endpoint and token it takes `PRECONF_ACCOUNTS` and `PRECONF_PROGRAMS`, comma separated pubkeys
-to filter on.
+endpoint and token it takes `PRECONF_ACCOUNTS`, `PRECONF_PROGRAMS`, `PRECONF_EXCLUDED_ACCOUNTS`,
+`PRECONF_SIGNERS` and `PRECONF_EXCLUDED_SIGNERS`, comma separated pubkeys to filter on.
 
 The example is meant to be left running. Every 15 seconds it logs how many transactions arrived,
 to the console and to a daily file under `logs/` (`PRECONF_LOG_DIR`). `RUST_LOG=debug` logs each

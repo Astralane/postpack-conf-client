@@ -3,16 +3,18 @@ use solana_pubkey::Pubkey;
 
 use crate::proto::SubscribePreconfsRequest;
 
-/// Filters for what the relay sends. Both lists empty means everything, except on a
-/// post-pack relay, which forwards only what matches and so then sends nothing.
+/// Filters for what the relay sends. Both lists empty means everything.
 #[derive(Debug, Clone, Default)]
 pub struct Interests {
     accounts: Vec<Pubkey>,
     programs: Vec<Pubkey>,
+    excluded_accounts: Vec<Pubkey>,
+    signers: Vec<Pubkey>,
+    excluded_signers: Vec<Pubkey>,
 }
 
 impl Interests {
-    /// Everything the relay is willing to send you, which from a post-pack relay is nothing.
+    /// Everything the relay is willing to send you.
     pub fn all() -> Self {
         Self::default()
     }
@@ -35,10 +37,28 @@ impl Interests {
         self
     }
 
+    pub fn excluded_accounts(mut self, keys: impl IntoIterator<Item = Pubkey>) -> Self {
+        self.excluded_accounts.extend(keys);
+        self
+    }
+
+    pub fn signers(mut self, keys: impl IntoIterator<Item = Pubkey>) -> Self {
+        self.signers.extend(keys);
+        self
+    }
+
+    pub fn excluded_signers(mut self, keys: impl IntoIterator<Item = Pubkey>) -> Self {
+        self.excluded_signers.extend(keys);
+        self
+    }
+
     pub(crate) fn request(&self) -> SubscribePreconfsRequest {
         SubscribePreconfsRequest {
             accounts_of_interest: encode(&self.accounts),
             programs_of_interest: encode(&self.programs),
+            excluded_accounts: encode(&self.excluded_accounts),
+            signers: encode(&self.signers),
+            excluded_signers: encode(&self.excluded_signers),
         }
     }
 }

@@ -45,6 +45,7 @@ pub struct Preconf {
     pub slot: u64,
     /// The raw signed transaction, exactly as the leader executed it.
     pub data: Bytes,
+    pub leader: Option<Pubkey>,
 }
 
 impl Preconf {
@@ -90,6 +91,7 @@ impl Event {
             Message::Preconf(preconf) => Some(Self::Preconf(Preconf {
                 slot: preconf.slot,
                 data: preconf.data,
+                leader: Pubkey::try_from(preconf.leader.as_ref()).ok(),
             })),
         }
     }
@@ -104,6 +106,7 @@ mod tests {
         Preconf {
             slot: 1,
             data: Bytes::from(data),
+            leader: None,
         }
     }
 
@@ -113,10 +116,31 @@ mod tests {
             message: Some(Message::Preconf(proto::Preconf {
                 slot: 9,
                 data: Bytes::from_static(b"transaction"),
+                leader: Bytes::new(),
             })),
         };
         match Event::from_message(message) {
-            Some(Event::Preconf(preconf)) => assert_eq!(preconf.slot, 9),
+            Some(Event::Preconf(preconf)) => {
+                assert_eq!(preconf.slot, 9);
+                assert!(preconf.leader.is_none());
+            }
+            _ => panic!("expected a preconf"),
+        }
+    }
+
+    #[test]
+    fn a_preconf_carries_the_leader_that_produced_it() {
+        let message = PreconfStreamMessage {
+            message: Some(Message::Preconf(proto::Preconf {
+                slot: 9,
+                data: Bytes::from_static(b"transaction"),
+                leader: Bytes::copy_from_slice(&[7u8; 32]),
+            })),
+        };
+        match Event::from_message(message) {
+            Some(Event::Preconf(preconf)) => {
+                assert_eq!(preconf.leader, Some(Pubkey::from([7u8; 32])))
+            }
             _ => panic!("expected a preconf"),
         }
     }

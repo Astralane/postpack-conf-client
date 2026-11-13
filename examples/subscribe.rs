@@ -51,14 +51,30 @@ async fn run() -> anyhow::Result<()> {
     let token = var("PRECONF_TOKEN").context("set PRECONF_TOKEN to your access token")?;
     let accounts = pubkeys("PRECONF_ACCOUNTS")?;
     let programs = pubkeys("PRECONF_PROGRAMS")?;
-    info!(%endpoint, accounts = accounts.len(), programs = programs.len(), "connecting");
+    let excluded_accounts = pubkeys("PRECONF_EXCLUDED_ACCOUNTS")?;
+    let signers = pubkeys("PRECONF_SIGNERS")?;
+    let excluded_signers = pubkeys("PRECONF_EXCLUDED_SIGNERS")?;
+    info!(
+        %endpoint,
+        accounts = accounts.len(),
+        programs = programs.len(),
+        excluded_accounts = excluded_accounts.len(),
+        signers = signers.len(),
+        excluded_signers = excluded_signers.len(),
+        "connecting"
+    );
 
     // Started first so the reports double as a heartbeat, connected or not
     let received = Arc::new(AtomicU64::new(0));
     tokio::spawn(report(received.clone()));
 
     let mut client = Client::connect(Config::new(endpoint, token)).await?;
-    let interests = Interests::new().accounts(accounts).programs(programs);
+    let interests = Interests::new()
+        .accounts(accounts)
+        .programs(programs)
+        .excluded_accounts(excluded_accounts)
+        .signers(signers)
+        .excluded_signers(excluded_signers);
     let mut stream = client.subscribe(interests).await?;
     info!("subscribed");
 
@@ -69,7 +85,7 @@ async fn run() -> anyhow::Result<()> {
             }
             Event::Preconf(tx) => {
                 received.fetch_add(1, Ordering::Relaxed);
-                debug!(slot = tx.slot, signature = %tx.signature(), "transaction");
+                debug!(slot = tx.slot, leader = ?tx.leader, signature = %tx.signature(), "transaction");
             }
             Event::StreamReset => warn!("reconnected, some messages may have been missed"),
         }

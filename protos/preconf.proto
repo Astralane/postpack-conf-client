@@ -13,6 +13,9 @@ message SubscribePreconfsRequest {
   // Empty AOI and POI means no inline filtering.
   repeated bytes accounts_of_interest = 1;
   repeated bytes programs_of_interest = 2;
+  repeated bytes excluded_accounts = 3;
+  repeated bytes signers = 4;
+  repeated bytes excluded_signers = 5;
 }
 
 message ValidatorSlotStart {
@@ -27,6 +30,7 @@ message Preconf {
   uint64 slot = 1;
   // Raw serialized Solana transaction.
   bytes data = 2;
+  bytes leader = 3;
 }
 
 message PreconfStreamMessage {

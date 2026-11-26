@@ -52,6 +52,13 @@ impl Preconf {
     /// Read straight out of the payload, no deserialization. The relay does not
     /// forward transactions it failed to parse, so this does not fail in practice.
     pub fn signature(&self) -> Signature {
+        if let Some(signature) = self
+            .view()
+            .ok()
+            .and_then(|view| view.signatures().first().copied())
+        {
+            return signature;
+        }
         self.data
             .get(FIRST_SIGNATURE)
             .and_then(|bytes| <[u8; 64]>::try_from(bytes).ok())

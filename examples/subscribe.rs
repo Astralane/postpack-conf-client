@@ -119,12 +119,22 @@ fn init_logging() -> anyhow::Result<()> {
         .build(&dir)
         .with_context(|| format!("open a log file in {dir}"))?;
     tracing_subscriber::registry()
-        .with(EnvFilter::new(var("RUST_LOG").as_deref().unwrap_or("info")))
+        .with(EnvFilter::new(log_filter()))
         // Colors only for a person at a terminal, not when piped to a file or journald
         .with(fmt::layer().with_ansi(std::io::stdout().is_terminal()))
         .with(fmt::layer().with_ansi(false).with_writer(file))
         .init();
     Ok(())
+}
+
+fn log_filter() -> String {
+    let level = var("RUST_LOG").unwrap_or_else(|| "info".to_string());
+    match level.to_ascii_lowercase().as_str() {
+        "debug" | "trace" => {
+            format!("info,subscribe={level},astralane_preconf_client={level}")
+        }
+        _ => level,
+    }
 }
 
 /// Unset and empty are the same, so a `.env` can leave a line blank
